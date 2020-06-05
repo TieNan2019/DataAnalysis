@@ -21,7 +21,7 @@ dataset <- dataset %>%
         "ST斜率", "主血管", "THAL", "健康")
 
 
-lpSVM <- list(
+SVM_model <- list(
         type = "Classification",
         library = "kernlab",
         loop = NULL
@@ -31,7 +31,7 @@ prm <- data.frame(parameter = c("C", "sigma"),
                   class = rep("numeric", 2),
                   label = c("Cost", "Sigma"))
 
-lpSVM$parameters <- prm
+SVM_model$parameters <- prm
 
 svmGrid <- function(x, y, len = NULL, search = "grid") {
         library(kernlab)
@@ -53,11 +53,12 @@ svmGrid <- function(x, y, len = NULL, search = "grid") {
 
         out
 }
-lpSVM$grid <- svmGrid
+SVM_model$grid <- svmGrid
 
 svmFit <- function(x, y, wts, param, lev, last, weights, classProbs, ...) { 
         kernlab::ksvm(
                 x = as.matrix(x), y = y,
+                # 使用高斯核
                 kernel = "rbfdot",
                 kpar = list(sigma = param$sigma),
                 C = param$C,
@@ -65,20 +66,20 @@ svmFit <- function(x, y, wts, param, lev, last, weights, classProbs, ...) {
                 ...
         )
 }
-lpSVM$fit <- svmFit
+SVM_model$fit <- svmFit
 
 svmPred <- function(modelFit, newdata, preProc = NULL, submodels = NULL)
         kernlab::predict(modelFit, newdata)
-lpSVM$predict <- svmPred
+SVM_model$predict <- svmPred
 
 svmProb <- function(modelFit, newdata, preProc = NULL, submodels = NULL)
         kernlab::predict(modelFit, newdata, type = "probabilities")
-lpSVM$prob <- svmProb
+SVM_model$prob <- svmProb
 
 svmSort <- function(x) x[order(x$C),]
-lpSVM$sort <- svmSort
+SVM_model$sort <- svmSort
 
-lpSVM$levels <- function(x) kernlab::lev(x)
+SVM_model$levels <- function(x) kernlab::lev(x)
 
 function(x) levels(x@data@get("response")[,1])
 
@@ -87,19 +88,38 @@ function(x) levels(x@data@get("response")[,1])
 library(mlbench)
 library(caret)
 
+params_grid <- expand.grid(sigma = 2^(-10:4), C = 1:20)
+
 fitControl <- trainControl(method = "repeatedcv",
-                           ## 10-fold CV...
+                           # 10 折交叉验证
                            number = 10,
-                           ## repeated ten times
+                           # 重复次数
                            repeats = 10)
 
-Laplacian <- train(健康 ~ ., data = dataset, 
-                   method = lpSVM, 
+svm_grid <- train(健康 ~ ., data = dataset, 
+                   method = SVM_model, 
                    preProcess = c("center", "scale"),
-                   tuneLength = 8,
+                   tuneGrid = params_grid,
                    trControl = fitControl)
 
 
 
+library(caretEnsemble)
+library(kernlab)
 
+
+# 读取数据
+dataset <- read.csv("heartattack.csv")
+
+# 处理数据
+library(tidyverse)
+dataset <- dataset %>%
+        mutate_at(
+                vars("性别", "胸痛", "血糖",
+                "心电", "心绞痛", "ST斜率",
+                "主血管", "THAL", "健康"), 
+                factor) %>%
+        select("年龄", "性别", "胸痛", "血压", "固醇", 
+        "血糖", "心率", "心绞痛", "ST下降", 
+        "ST斜率", "主血管", "THAL", "健康")
 
