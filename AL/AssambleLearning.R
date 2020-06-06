@@ -103,23 +103,43 @@ svm_grid <- train(健康 ~ ., data = dataset,
                    trControl = fitControl)
 
 
+# 这部分弃用
+# library(caretEnsemble)
+# library(kernlab)
 
-library(caretEnsemble)
-library(kernlab)
+
+# # 读取数据
+# dataset <- read.csv("heartattack.csv")
+
+# # 处理数据
+# library(tidyverse)
+# dataset <- dataset %>%
+#         mutate_at(
+#                 vars("性别", "胸痛", "血糖",
+#                 "心电", "心绞痛", "ST斜率",
+#                 "主血管", "THAL", "健康"), 
+#                 factor) %>%
+#         select("年龄", "性别", "胸痛", "血压", "固醇", 
+#         "血糖", "心率", "心绞痛", "ST下降", 
+#         "ST斜率", "主血管", "THAL", "健康")
 
 
-# 读取数据
-dataset <- read.csv("heartattack.csv")
+# models <- caretList(
+#         X14 ~ .,
+#         data=dataset,
+#         trControl=trainControl(
+#                 method="repeatedcv", number=10, 
+#                 repeats=3, savePredictions='final', 
+#                 classProbs=TRUE
+#         ),
+#         methodList = c(
+#                 'svmRadial', 'lssvmRadial', 
+#                 'lssvmPoly', 'lssvmLinear'
+#         )
+# )
 
-# 处理数据
-library(tidyverse)
-dataset <- dataset %>%
-        mutate_at(
-                vars("性别", "胸痛", "血糖",
-                "心电", "心绞痛", "ST斜率",
-                "主血管", "THAL", "健康"), 
-                factor) %>%
-        select("年龄", "性别", "胸痛", "血压", "固醇", 
-        "血糖", "心率", "心绞痛", "ST下降", 
-        "ST斜率", "主血管", "THAL", "健康")
+# svm_stacking <- caretStack(
+#         method = SVM_model,
+#         trControl = fitControl
+# )
 
