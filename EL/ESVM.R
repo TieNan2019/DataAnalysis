@@ -95,20 +95,16 @@ params_grid <- expand.grid(sigma = 2^(-10:4), C = 1:20)
 
 
 model_list <- c(
+        'svmRadialSigma',
+        'svmRadialCost',
+        'svmPoly',
+        'svmLinear2',
+        'svmLinearWeights',
+        'svmRadialWeights',
         # 线性核支持向量机
-        # 'svmLinear',
-        # 线性核 L2 正则化支持向量机 ———— 无法用于集成
-        # 'svmLinear3',
-        # 最小平方支持向量机 ———— 无法用于集成
-        # 'lssvmLinear'
-        # 多项式核最小平方支持向量机 ———— 无法用于集成
-        # 'lssvmPoly',
-        # 指数核支持向量机 ———— 会报错
-        # 'svmExpoString',
-        # 高斯核最小平方支持向量机 ———— 无法用于集成
-        # 'lssvmRadial',
+        'svmLinear',
         # 高斯核偏置支持向量机
-        # 'svmRadial'
+        'svmRadial'
 )
 
 # 分别生成模型
@@ -117,14 +113,50 @@ models <- caretList(
         data = train_data,
         trControl = train_control,
         methodList = model_list
-        # tuneList = list(
-        #         svmRadial = caretModelSpec(
-        #                 method="svmRadial", 
-        #                 trace = FALSE, 
-        #                 tuneGrid = params_grid
-        #         )
-        # )
+        tuneList = list(
+                svmRadialSigma = caretModelSpec(
+                        method="svmRadialSigma",
+                        trace = FALSE,
+                        tuneGrid = expand.grid(
+                                sigma = 2^(-10:-6),
+                                C = 15:20
+                        )
+                ),
+                svmRadialCost = caretModelSpec(
+                        method="svmRadialCost",
+                        trace = FALSE,
+                        tuneGrid = expand.grid(C = 1:4)
+                ),
+                svmPoly = caretModelSpec(
+                        method="svmPoly",
+                        trace = FALSE,
+                        tuneGrid = expand.grid(
+                                degree = 1,
+                                scale = 1:3,
+                                C = 1:4
+                        )
+                ),
+                svmLinear2 = caretModelSpec(
+                        method="svmLinear2",
+                        trace = FALSE,
+                        tuneGrid = expand.grid(cost = 1:3)
+                ),
+                svmLinear = caretModelSpec(
+                        method="svmLinear",
+                        trace = FALSE,
+                        tuneGrid = expand.grid(C = 1:5)
+                ),
+                svmRadial = caretModelSpec(
+                        method="svmRadial", 
+                        trace = FALSE,
+                        tuneGrid = expand.grid(sigma = 2^(-9:-5), C = 15:20)
+                )
+
+        )
 )
+
+
+
 
 
 # 模型集成
@@ -135,3 +167,43 @@ svm_stack <- caretStack(
         trControl = train_control
 )
 
+predicted <- predict(
+        svm_stack,
+        test_data
+)
+
+Metrics::ce(predicted, test_data$健康)
+
+
+
+
+
+
+
+# 'svmRadialSigma'
+# sigma      C
+# 2^(-10:-6) 15:20
+
+
+# 'svmRadialCost',
+# C
+# 1:4
+
+
+# svmPoly
+# degree scale C
+# 1      1:3   1:4
+
+
+# svmLinear2
+# cost
+# 1:3
+
+
+# svmLinear
+# C
+# 1:5
+
+# svmRadial
+# sigma      C
+# 2^(-9:-5) 15:20
