@@ -112,7 +112,7 @@ models <- caretList(
         健康 ~ .,
         data = train_data,
         trControl = train_control,
-        methodList = model_list
+        methodList = model_list,
         tuneList = list(
                 svmRadialSigma = caretModelSpec(
                         method="svmRadialSigma",
