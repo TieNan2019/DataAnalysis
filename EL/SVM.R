@@ -33,9 +33,6 @@ train_control <- trainControl(
 )
 
 # 网格搜索
-# 超参数网格
-params_grid <- expand.grid(sigma = 2^(-10:4), C = 1:20)
-
 # 搜索最佳参数
 svm_model <- train(
         # 指定标签和特征
