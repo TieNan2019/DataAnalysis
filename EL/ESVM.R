@@ -64,7 +64,7 @@ train_control <- trainControl(
 
 # 网格搜索
 # 超参数网格
-params_grid <- expand.grid(sigma = 2^(-10:4), C = 1:20)
+# params_grid <- expand.grid(sigma = 2^(-10:4), C = 1:20)
 
 # 搜索最佳参数
 # svm_model <- train(
@@ -157,8 +157,6 @@ models <- caretList(
 
 
 
-
-
 # 模型集成
 svm_stack <- caretStack(
         models, 
@@ -167,13 +165,20 @@ svm_stack <- caretStack(
         trControl = train_control
 )
 
+
+stack_in_svm <- svm_stack <- caretStack(
+        models, 
+        method = "svmRadial", 
+        metric = "Accuracy", 
+        trControl = train_control
+)
 predicted <- predict(
-        svm_stack,
+        stack_in_svm,
         test_data
 )
 
 Metrics::ce(predicted, test_data$健康)
-
+# [1] 0.119403
 
 
 
