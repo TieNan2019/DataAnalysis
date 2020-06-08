@@ -113,6 +113,7 @@ models <- caretList(
         data = train_data,
         trControl = train_control,
         methodList = model_list,
+        preProc = c("center", "scale", "pca"),
         tuneList = list(
                 svmRadialSigma = caretModelSpec(
                         method="svmRadialSigma",
@@ -166,7 +167,7 @@ svm_stack <- caretStack(
 )
 
 predicted <- predict(
-        stack_in_svm,
+        svm_stack,
         test_data
 )
 
