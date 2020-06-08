@@ -160,18 +160,11 @@ models <- caretList(
 # 模型集成
 svm_stack <- caretStack(
         models, 
-        method = "rf", 
-        metric = "Accuracy", 
-        trControl = train_control
-)
-
-
-stack_in_svm <- svm_stack <- caretStack(
-        models, 
         method = "svmRadial", 
         metric = "Accuracy", 
         trControl = train_control
 )
+
 predicted <- predict(
         stack_in_svm,
         test_data
