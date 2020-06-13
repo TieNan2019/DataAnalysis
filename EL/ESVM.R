@@ -62,37 +62,6 @@ train_control <- trainControl(
         # index = createFolds(train_data$健康, fold_numbers)
 )
 
-# 网格搜索
-# 超参数网格
-# params_grid <- expand.grid(sigma = 2^(-10:4), C = 1:20)
-
-# 搜索最佳参数
-# svm_model <- train(
-#         # 指定标签和特征
-#         健康 ~ .,
-#         # 训练集
-#         data = train_data,
-#         # 选择算法
-#         method = "svmRadial",
-#         # 数据预处理
-#         preProc = c("center", "scale", "pca"),
-#         trControl = train_control,
-#         # 显示过程内容
-#         verbose = TRUE,
-#         # 自定义调参网格
-#         tuneGrid = params_grid
-# )
-
-# predicted <- predict(
-#         svm_model,
-#         newdata = test_data
-# )
-# Metrics::ce(predicted, test_data$健康)
-
-# svm_model$bestTune
-#    sigma       C
-# 40 0.001953125 20
-
 
 model_list <- c(
         'svmRadialSigma',
@@ -174,35 +143,78 @@ predicted <- predict(
 Metrics::ce(predicted, test_data$健康)
 # [1] 0.119403
 
+# 混淆矩阵评估
+confusionMatrix(
+        predicted,
+        test_data$健康
+)
 
 
+# > confusionMatrix(
+# +         predicted,
+# +         test_data$健康
+# + )
+# Confusion Matrix and Statistics
+
+#           Reference
+# Prediction 健康 患病
+#       健康   34    5
+#       患病    3   25
+                                         
+#                Accuracy : 0.8806         
+#                  95% CI : (0.7782, 0.947)
+#     No Information Rate : 0.5522         
+#     P-Value [Acc > NIR] : 7.658e-09      
+                                         
+#                   Kappa : 0.757          
+                                         
+#  Mcnemar's Test P-Value : 0.7237         
+                                         
+#             Sensitivity : 0.9189         
+#             Specificity : 0.8333         
+#          Pos Pred Value : 0.8718         
+#          Neg Pred Value : 0.8929         
+#              Prevalence : 0.5522         
+#          Detection Rate : 0.5075         
+#    Detection Prevalence : 0.5821         
+#       Balanced Accuracy : 0.8761         
+                                         
+#        'Positive' Class : 健康    
 
 
-
-# 'svmRadialSigma'
-# sigma      C
-# 2^(-10:-6) 15:20
-
-
-# 'svmRadialCost',
-# C
-# 1:4
-
-
-# svmPoly
-# degree scale C
-# 1      1:3   1:4
+# ROC 检验曲线
+roc_control <- trainControl(
+        method = "repeatedcv",
+        number = fold_numbers,
+        repeats = val_times,
+        # 使用 twoClassSummary 函数衡量性能指标
+        summaryFunction = twoClassSummary,
+        savePredictions = TRUE,
+        classProbs = TRUE
+)
 
 
-# svmLinear2
-# cost
-# 1:3
+svm_stack_ROC <- caretStack(
+        models, 
+        method = "svmRadial", 
+        metric = "ROC",
+        tuneGrid = expand.grid(sigma = 2^(-10:4), C = 1:20),
+        trControl = roc_control
+)
 
+res <- svm_stack_ROC$error %>%
+        filter(C > 0)
+res$C <- factor(res$C)
 
-# svmLinear
-# C
-# 1:5
+roc_pic = ggplot(
+        data = res,
+        mapping = aes(
+                x = sigma,
+                y = ROC,
+                class = C,
+                color = C
+        )) +
+        geom_line()
+ggsave(roc_pic, file="ROC.pdf", width = 10, height = 6)
 
-# svmRadial
-# sigma      C
-# 2^(-9:-5) 15:20
+roc_pic
